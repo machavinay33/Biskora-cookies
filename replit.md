@@ -1,36 +1,56 @@
-# [Project name]
+# BisKora Cookies
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Premium Indian artisan cookie & dry cake brand website. Tagline: "YOUR TASTY BITES."
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080)
+- `pnpm --filter @workspace/biskora run dev` — run the frontend (port 25203)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL` — Postgres connection string, `SESSION_SECRET` — JWT signing secret
+
+## Admin Credentials
+
+- **Email:** admin@biskora.com
+- **Password:** BiskoraAdmin@2024
+- **Login URL:** /admin/login
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
+- Frontend: React 19 + Vite + Tailwind CSS v4 + Framer Motion
+- API: Express 5 + JWT auth
 - DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Validation: Zod, drizzle-zod
+- API codegen: Orval (from OpenAPI spec in lib/api-spec/openapi.yaml)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/biskora/` — React + Vite frontend
+  - `src/pages/` — Home, Products, About, Services, Contact, Admin login/dashboard
+  - `src/components/layout/` — Navbar, Footer, PageLayout
+  - `src/components/ui/logo.tsx` — BisKora SVG logo (brown + purple)
+  - `src/lib/utils.ts` — admin token helpers, formatPrice
+- `artifacts/api-server/src/routes/` — products.ts, orders.ts, admin.ts
+- `lib/db/src/schema/index.ts` — products, ingredients, orders tables
+- `lib/api-spec/openapi.yaml` — OpenAPI source of truth
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Admin auth uses JWT (signed with SESSION_SECRET). Token stored in localStorage as `biskora_admin_token`.
+- Products have a jsonb `highlights` column for tags.
+- Ingredients belong to products (FK with cascade delete); toggling `isInStock` on an ingredient marks it out of stock on the admin dashboard.
+- Home page renders Hero section + products grid on the same page (scroll-to-products).
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- 10 cookie products pre-seeded (Traditional, Healthy, Classic, Spiced, Gourmet, Tropical, Premium)
+- Each product has 4-5 ingredients that admins can mark in/out of stock
+- Contact form submissions create Orders in the DB
+- Admin dashboard: stats panel, orders management, products management, ingredients stock toggle
 
 ## User preferences
 
@@ -38,7 +58,8 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- After any schema change: `pnpm --filter @workspace/api-spec run codegen` then fix lib/api-zod/src/index.ts to only export from `./generated/api` (the Orval-generated index has a duplicate exports bug)
+- Google Fonts @import must be the FIRST line in index.css (before @import 'tailwindcss')
 
 ## Pointers
 

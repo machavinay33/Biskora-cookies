@@ -3,20 +3,27 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Biskora Cookies API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: products
+    description: Cookie products
+  - name: ingredients
+    description: Product ingredients
+  - name: orders
+    description: Customer orders / contact inquiries
+  - name: admin
+    description: Admin operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +31,328 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ── Products ─────────────────────────────────────────────────────────────
+  /products:
+    get:
+      operationId: getProducts
+      tags: [products]
+      summary: List all products
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get a product by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Not found
+
+  # ── Ingredients ───────────────────────────────────────────────────────────
+  /ingredients:
+    get:
+      operationId: getIngredients
+      tags: [ingredients]
+      summary: List all ingredients
+      responses:
+        "200":
+          description: List of ingredients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Ingredient"
+
+  # ── Orders ────────────────────────────────────────────────────────────────
+  /orders:
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Submit a contact inquiry / order request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderInput"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  # ── Admin: Auth ───────────────────────────────────────────────────────────
+  /admin/login:
+    post:
+      operationId: adminLogin
+      tags: [admin]
+      summary: Admin login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminLoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminLoginResponse"
+        "401":
+          description: Invalid credentials
+
+  /admin/logout:
+    post:
+      operationId: adminLogout
+      tags: [admin]
+      summary: Admin logout
+      responses:
+        "200":
+          description: Logged out
+
+  /admin/me:
+    get:
+      operationId: getAdminMe
+      tags: [admin]
+      summary: Get current admin session
+      responses:
+        "200":
+          description: Admin info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMe"
+        "401":
+          description: Not authenticated
+
+  # ── Admin: Products ───────────────────────────────────────────────────────
+  /admin/products:
+    get:
+      operationId: adminGetProducts
+      tags: [admin]
+      summary: Admin list products
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: adminCreateProduct
+      tags: [admin]
+      summary: Create product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /admin/products/{id}:
+    put:
+      operationId: adminUpdateProduct
+      tags: [admin]
+      summary: Update product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: adminDeleteProduct
+      tags: [admin]
+      summary: Delete product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+
+  # ── Admin: Ingredients ────────────────────────────────────────────────────
+  /admin/ingredients:
+    get:
+      operationId: adminGetIngredients
+      tags: [admin]
+      summary: Admin list ingredients
+      responses:
+        "200":
+          description: List of ingredients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Ingredient"
+    post:
+      operationId: adminCreateIngredient
+      tags: [admin]
+      summary: Create ingredient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateIngredientInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ingredient"
+
+  /admin/ingredients/{id}:
+    put:
+      operationId: adminUpdateIngredient
+      tags: [admin]
+      summary: Update ingredient (toggle in-stock, rename, etc.)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateIngredientInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ingredient"
+    delete:
+      operationId: adminDeleteIngredient
+      tags: [admin]
+      summary: Delete ingredient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+
+  # ── Admin: Orders ─────────────────────────────────────────────────────────
+  /admin/orders:
+    get:
+      operationId: adminGetOrders
+      tags: [admin]
+      summary: Admin list orders
+      responses:
+        "200":
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+  /admin/orders/{id}:
+    put:
+      operationId: adminUpdateOrder
+      tags: [admin]
+      summary: Update order status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  # ── Admin: Dashboard Stats ────────────────────────────────────────────────
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Dashboard stats
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +360,199 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        highlights:
+          type: array
+          items:
+            type: string
+        isAvailable:
+          type: boolean
+        price:
+          type: number
+        ingredients:
+          type: array
+          items:
+            $ref: "#/components/schemas/Ingredient"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, name, category, description, imageUrl, highlights, isAvailable, price, createdAt, updatedAt]
+
+    Ingredient:
+      type: object
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        name:
+          type: string
+        isInStock:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, productId, name, isInStock, createdAt, updatedAt]
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        message:
+          type: string
+        orderType:
+          type: string
+        status:
+          type: string
+          enum: [new, read, responded, completed]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, name, email, phone, message, orderType, status, createdAt, updatedAt]
+
+    CreateOrderInput:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        message:
+          type: string
+        orderType:
+          type: string
+      required: [name, email, phone, message, orderType]
+
+    CreateProductInput:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        highlights:
+          type: array
+          items:
+            type: string
+        isAvailable:
+          type: boolean
+        price:
+          type: number
+      required: [name, category, description, imageUrl, highlights, isAvailable, price]
+
+    UpdateProductInput:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        highlights:
+          type: array
+          items:
+            type: string
+        isAvailable:
+          type: boolean
+        price:
+          type: number
+
+    CreateIngredientInput:
+      type: object
+      properties:
+        productId:
+          type: integer
+        name:
+          type: string
+        isInStock:
+          type: boolean
+      required: [productId, name, isInStock]
+
+    UpdateIngredientInput:
+      type: object
+      properties:
+        name:
+          type: string
+        isInStock:
+          type: boolean
+
+    UpdateOrderInput:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [new, read, responded, completed]
+      required: [status]
+
+    AdminLoginInput:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required: [email, password]
+
+    AdminLoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        token:
+          type: string
+      required: [success, token]
+
+    AdminMe:
+      type: object
+      properties:
+        email:
+          type: string
+        role:
+          type: string
+      required: [email, role]
+
+    AdminStats:
+      type: object
+      properties:
+        totalOrders:
+          type: integer
+        newOrders:
+          type: integer
+        totalProducts:
+          type: integer
+        outOfStockIngredients:
+          type: integer
+      required: [totalOrders, newOrders, totalProducts, outOfStockIngredients]
