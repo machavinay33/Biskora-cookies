@@ -2,6 +2,8 @@
 
 # compiled output
 dist
+# Allow the pre-built API server dist so Vercel can deploy it without a build step
+!artifacts/api-server/dist/
 tmp
 out-tsc
 *.tsbuildinfo
