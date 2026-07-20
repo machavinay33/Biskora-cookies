@@ -1,0 +1,9 @@
+{
+  "buildCommand": "pnpm --filter @workspace/biskora run build",
+  "outputDirectory": "artifacts/biskora/dist/public",
+  "installCommand": "pnpm install --frozen-lockfile=false",
+  "framework": null,
+  "env": {
+    "BASE_PATH": "/"
+  }
+}
